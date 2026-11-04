@@ -1,0 +1,26 @@
+{
+  "currency": "USD",
+  "laptops": [
+    {
+      "id": "LT-100",
+      "model": "Lenovo ThinkPad X1 Carbon",
+      "specs": "Intel Core Ultra 7, 32GB RAM, 1TB SSD, 14in",
+      "use_case": "General enterprise / sales",
+      "unit_price": 1899
+    },
+    {
+      "id": "LT-200",
+      "model": "Apple MacBook Pro 14",
+      "specs": "Apple M4 Pro, 36GB RAM, 1TB SSD, 14in",
+      "use_case": "Engineering / design",
+      "unit_price": 2399
+    },
+    {
+      "id": "LT-300",
+      "model": "Dell Latitude 7450",
+      "specs": "Intel Core Ultra 5, 16GB RAM, 512GB SSD, 14in",
+      "use_case": "Operations / support",
+      "unit_price": 1649
+    }
+  ]
+}
