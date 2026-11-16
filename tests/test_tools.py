@@ -12,13 +12,7 @@ from tools import finance_tools, it_tools  # noqa: E402
 check_budget = finance_tools.check_budget.fn
 order_hardware = it_tools.order_hardware.fn
 
-
-@pytest.fixture
-def budget_file(tmp_path, monkeypatch):
-    path = tmp_path / "budget.json"
-    path.write_text(json.dumps({"total_cap": 500000, "current_spend": 420000}))
-    monkeypatch.setattr(finance_tools, "BUDGET_FILE", path)
-    return path
+# budget_file fixture is provided by tests/conftest.py (autouse=True isolate_data_files).
 
 
 def test_check_budget_approved_under_cap(budget_file):

@@ -1,0 +1,167 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'IBM Plex Sans', sans-serif !important;
+}
+
+/* Square corners on all Streamlit widgets */
+.stButton > button {
+    border-radius: 0 !important;
+    border: 1px solid #393939 !important;
+    font-family: 'IBM Plex Sans', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+}
+.stTextInput > div > div > input,
+.stSelectbox > div > div,
+.stForm {
+    border-radius: 0 !important;
+    border-color: #393939 !important;
+}
+
+/* KPI tile */
+.kpi-tile {
+    background: #262626;
+    border: 1px solid #393939;
+    border-top: 3px solid #0f62fe;
+    padding: 16px 20px 20px;
+    min-height: 110px;
+}
+.kpi-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #8d8d8d;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+}
+.kpi-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: #f4f4f4;
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.1;
+}
+.kpi-sub {
+    font-size: 12px;
+    color: #8d8d8d;
+    margin-top: 4px;
+}
+
+/* Section headers */
+.section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #8d8d8d;
+    border-bottom: 1px solid #393939;
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+}
+
+/* Kanban card */
+.kanban-card {
+    background: #262626;
+    border: 1px solid #393939;
+    border-left: 3px solid #0f62fe;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+.kanban-card .card-title { font-weight: 600; margin-bottom: 2px; }
+.kanban-card .card-owner { font-size: 11px; color: #8d8d8d; }
+.kanban-card.blocked { border-left-color: #da1e28; }
+.kanban-card.done    { border-left-color: #24a148; }
+
+/* Approval card */
+.approval-card {
+    background: #262626;
+    border: 1px solid #393939;
+    border-left: 3px solid #f1c21b;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+}
+.approval-card .amount {
+    font-size: 20px;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+}
+.approval-card .over {
+    font-size: 12px;
+    color: #da1e28;
+    font-family: 'IBM Plex Mono', monospace;
+}
+.approval-card .meta { font-size: 11px; color: #8d8d8d; margin-top: 4px; }
+
+/* Budget bar */
+.budget-bar-track {
+    background: #393939;
+    height: 6px;
+    width: 100%;
+    margin-top: 8px;
+}
+.budget-bar-fill {
+    height: 6px;
+    background: #0f62fe;
+}
+.budget-bar-fill.over { background: #da1e28; }
+
+/* Terminal */
+.terminal {
+    background: #0d1117;
+    color: #c9d1d9;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 14px;
+    border: 1px solid #393939;
+    height: 380px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+}
+.terminal .ts      { color: #6e7681; }
+.terminal .IT      { color: #4589ff; }
+.terminal .FINANCE { color: #24a148; }
+.terminal .SYSTEM  { color: #f1c21b; }
+.terminal .ORCH    { color: #bc8cff; }
+.terminal .USER    { color: #f4f4f4; font-weight: 600; }
+.terminal .HUMAN   { color: #f1c21b; font-weight: 600; }
+.terminal .BLOCKED { color: #da1e28; }
+
+/* Policy panel */
+.policy-rule {
+    background: #262626;
+    border: 1px solid #393939;
+    border-left: 3px solid #4589ff;
+    padding: 8px 12px;
+    font-size: 12px;
+    margin-bottom: 6px;
+    font-family: 'IBM Plex Mono', monospace;
+}
+
+/* Trace step */
+.trace-step {
+    border-left: 2px solid #393939;
+    padding: 6px 12px;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+}
+.trace-step.ok       { border-left-color: #24a148; }
+.trace-step.approved { border-left-color: #24a148; }
+.trace-step.blocked  { border-left-color: #da1e28; }
+.trace-step.error    { border-left-color: #da1e28; }
+
+/* Runtime badge */
+.runtime-badge {
+    display: inline-block;
+    background: #262626;
+    border: 1px solid #393939;
+    font-size: 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: #8d8d8d;
+    padding: 2px 10px;
+    vertical-align: middle;
+    margin-left: 12px;
+}

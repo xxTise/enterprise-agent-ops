@@ -15,24 +15,7 @@ from agents.approvals import (  # noqa: E402
 from agents import orchestrator  # noqa: E402
 from tools import finance_tools  # noqa: E402
 
-
-# ── Fixtures ──────────────────────────────────────────────────────────────────
-
-@pytest.fixture
-def approvals_file(tmp_path, monkeypatch):
-    path = tmp_path / "approvals.json"
-    path.write_text("[]\n")
-    monkeypatch.setattr(approvals_mod, "APPROVALS_FILE", path)
-    return path
-
-
-@pytest.fixture
-def budget_file(tmp_path, monkeypatch):
-    path = tmp_path / "budget.json"
-    path.write_text(json.dumps({"total_cap": 500000, "current_spend": 420000}))
-    monkeypatch.setattr(finance_tools, "BUDGET_FILE", path)
-    return path
-
+# Fixtures are provided by tests/conftest.py (autouse=True isolate_data_files).
 
 _SAMPLE_INVOICE = {
     "quantity": 50,

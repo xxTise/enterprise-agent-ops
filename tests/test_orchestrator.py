@@ -11,13 +11,7 @@ from agents.finance_agent import finance_agent  # noqa: E402
 from agents.it_agent import it_agent  # noqa: E402
 from tools import finance_tools  # noqa: E402
 
-
-@pytest.fixture
-def budget_file(tmp_path, monkeypatch):
-    path = tmp_path / "budget.json"
-    path.write_text(json.dumps({"total_cap": 500000, "current_spend": 420000}))
-    monkeypatch.setattr(finance_tools, "BUDGET_FILE", path)
-    return path
+# Fixtures are provided by tests/conftest.py (autouse=True isolate_data_files).
 
 
 def test_orchestrator_agent_wires_collaborators():
@@ -67,7 +61,14 @@ def test_run_blocked_returns_exact_payload(budget_file):
         "required_action": "human_approval",
     }
     assert json.loads(budget_file.read_text())["current_spend"] == 420000
-    assert result["logs"][-1]["message"].startswith("Result: BLOCKED")
+    messages = [e["message"] for e in result["logs"]]
+    # Second-to-last is "Result: BLOCKED…", last is the approval-request log
+    assert any(m.startswith("Result: BLOCKED") for m in messages)
+    approval_id = result["approval_id"]
+    assert any(
+        f"Approval request {approval_id} opened for human review." == m
+        for m in messages
+    )
 
 
 def test_run_bad_prompt_never_reaches_finance(budget_file):
@@ -83,3 +84,40 @@ def test_delegate_enforces_tool_binding():
         orchestrator.delegate(it_agent, "check_budget", invoice_amount=1)
     with pytest.raises(PermissionError):
         orchestrator.delegate(finance_agent, "order_hardware", quantity=1, model="LT-100")
+
+
+def test_run_returns_trace_approved(budget_file):
+    result = orchestrator.run("Order 10 ThinkPads")
+    trace = result["trace"]
+    assert len(trace) == 2
+
+    it_step = trace[0]
+    assert it_step["agent"] == "it_agent"
+    assert it_step["tool"] == "order_hardware"
+    assert it_step["inputs"] == {"quantity": 10, "model": "LT-100"}
+    assert it_step["outcome"] == "ok"
+    assert "total_invoice" in it_step["output"]
+
+    fin_step = trace[1]
+    assert fin_step["agent"] == "finance_agent"
+    assert fin_step["tool"] == "check_budget"
+    assert fin_step["inputs"] == {"invoice_amount": 18990}
+    assert fin_step["outcome"] == "approved"
+    assert fin_step["output"] == "approved"
+
+    assert "elapsed_ms" in result
+    assert isinstance(result["elapsed_ms"], int)
+
+
+def test_run_returns_trace_blocked(budget_file):
+    result = orchestrator.run("Order 50 MacBooks")
+    trace = result["trace"]
+    assert len(trace) == 2
+
+    fin_step = trace[1]
+    assert fin_step["agent"] == "finance_agent"
+    assert fin_step["tool"] == "check_budget"
+    assert fin_step["outcome"] == "blocked"
+    # output is the raw JSON blocked payload string
+    payload = json.loads(fin_step["output"])
+    assert payload["status"] == "blocked"

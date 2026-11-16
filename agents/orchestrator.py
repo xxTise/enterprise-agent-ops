@@ -12,9 +12,9 @@ Usage:
 """
 
 import json
-import logging
 import re
 import sys
+import time
 
 from ibm_watsonx_orchestrate.agent_builder.agents import Agent, AgentKind, AgentStyle
 
@@ -23,8 +23,6 @@ from agents.finance_agent import finance_agent
 from agents.it_agent import it_agent
 from tools.finance_tools import check_budget
 from tools.it_tools import order_hardware
-
-logger = logging.getLogger(__name__)
 
 orchestrator_agent = Agent(
     name="orchestrator_agent",
@@ -96,19 +94,32 @@ def run(prompt: str) -> dict:
 
     Returns:
         dict: status ("approved" | "blocked" | "error"), logs (chronological list of
-            {"speaker": agent name, "message": str}), invoice, finance_decision, error.
+            {"speaker": agent name, "message": str}), invoice, finance_decision, error,
+            trace (structured list of {"agent", "tool", "inputs", "output", "outcome"}).
     """
+    t_start = time.monotonic()
     logs = []
-    result = {"prompt": prompt, "status": "error", "logs": logs, "invoice": None,
-              "finance_decision": None, "error": None}
+    trace = []
+    result = {"prompt": prompt, "status": "error", "logs": logs, "trace": trace,
+              "invoice": None, "finance_decision": None, "error": None}
 
     def log(agent: Agent, message: str) -> None:
         logs.append({"speaker": agent.name, "message": message})
+
+    def record_trace(agent: Agent, tool: str, inputs: dict, output: str, outcome: str) -> None:
+        trace.append({
+            "agent": agent.name,
+            "tool": tool,
+            "inputs": inputs,
+            "output": output,
+            "outcome": outcome,
+        })
 
     def fail(agent: Agent, reason: str) -> dict:
         log(agent, reason)
         log(orchestrator_agent, "Result: ERROR. Order not processed.")
         result["error"] = reason
+        result["elapsed_ms"] = round((time.monotonic() - t_start) * 1000)
         return result
 
     log(orchestrator_agent, f'Received prompt: "{prompt}"')
@@ -118,29 +129,38 @@ def run(prompt: str) -> dict:
         return fail(orchestrator_agent, str(e))
     log(orchestrator_agent, f"Parsed intent: {quantity} x {model_id}. Delegating to IT Agent.")
 
-    invoice = json.loads(delegate(it_agent, "order_hardware", quantity=quantity, model=model_id))
+    it_inputs = {"quantity": quantity, "model": model_id}
+    raw_invoice = delegate(it_agent, "order_hardware", **it_inputs)
+    invoice = json.loads(raw_invoice)
     if invoice.get("status") == "error":
+        record_trace(it_agent, "order_hardware", it_inputs, raw_invoice, "error")
         return fail(it_agent, invoice["reason"])
     result["invoice"] = invoice
     total = invoice["total_invoice"]
+    record_trace(it_agent, "order_hardware", it_inputs, raw_invoice, "ok")
     log(it_agent, f"IT Agent calculated invoice: ${total:,} ({invoice['quantity']} x {invoice['model']})")
 
     log(orchestrator_agent, "Passing invoice to Finance Agent for budget approval.")
-    decision = delegate(finance_agent, "check_budget", invoice_amount=total)
+    finance_inputs = {"invoice_amount": total}
+    decision = delegate(finance_agent, "check_budget", **finance_inputs)
     log(finance_agent, f"Finance Agent evaluated invoice of ${total:,}: {decision}")
 
     if decision == "approved":
         result["status"] = "approved"
         result["finance_decision"] = decision
+        record_trace(finance_agent, "check_budget", finance_inputs, decision, "approved")
         log(orchestrator_agent, "Result: APPROVED. Order recorded against the budget.")
     else:
         result["status"] = "blocked"
         result["finance_decision"] = json.loads(decision)
+        record_trace(finance_agent, "check_budget", finance_inputs, decision, "blocked")
         log(orchestrator_agent, "Result: BLOCKED. Escalating for human approval.")
         from agents.approvals import create_approval
         approval = create_approval(prompt, invoice)
         result["approval_id"] = approval["id"]
-        logger.info("Approval request %s opened for human review.", approval["id"])
+        log(orchestrator_agent, f"Approval request {approval['id']} opened for human review.")
+
+    result["elapsed_ms"] = round((time.monotonic() - t_start) * 1000)
     return result
 
 
